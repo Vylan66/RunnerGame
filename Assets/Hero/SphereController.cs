@@ -6,9 +6,9 @@ public class SphereController : MonoBehaviour
 {
     [SerializeField] LayerMask groundLayers;
     [SerializeField] private float runSpeed = 1f;
-    [SerializeField] private float jumpHeight = 20f;
+    [SerializeField] private float jumpHeight = 5f;
 
-    private float gravity = -10f;
+    private float gravity = -25f;
     private CharacterController characterController;
     private Vector3 velocity;
     private bool isGrounded;
@@ -46,22 +46,15 @@ public class SphereController : MonoBehaviour
 
         if (isGrounded && Input.GetButtonDown("Jump"))
         {
-            Debug.Log("Jumped");
             velocity.y += Mathf.Sqrt(jumpHeight * -1 * gravity);
         }
-        else
-        {
-            Debug.Log("not grounded");
-        }
+        
 
         //Gravity
         velocity.y += gravity * Time.deltaTime;
 
         //Vertical Velocity
         characterController.Move(velocity * Time.deltaTime);
-        if (isGrounded)
-        {
-            Debug.Log("End Is Grounded");
-        }
+
     }
 }
