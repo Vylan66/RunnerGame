@@ -13,7 +13,6 @@ public class GunAim1 : MonoBehaviour
     void Update()
     {
         mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
-        Debug.Log($"mousePos: {mousePos}");
     }
 
     void FixedUpdate()
