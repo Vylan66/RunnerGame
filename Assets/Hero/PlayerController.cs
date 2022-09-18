@@ -1,84 +1,73 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] LayerMask groundLayers;
-    [SerializeField] private float runSpeed = 1f;
-    [SerializeField] private float jumpHeight = 5f;
-    
-    public int maxHealth = 100;
+    public static event Action OnPlayerDeath;
+    [SerializeField] private LayerMask platformsLayerMask;
+    public int maxHealth = 3;
 	public static int currentHealth;
+    private Rigidbody2D rigidbody2d;
+    private BoxCollider2D boxCollider2d;
 
-	public PlayerHealthBar playerHealthBar;
+	private PlayerHealthBar playerHealthBar;
 
-    private float gravity = -25f;
-    private CharacterController characterController;
-    private Vector3 velocity;
-    private bool isGrounded;
-    private float horizontalInput;
-
-    private long frameCounter;
+    
+    private void Awake()
+    {
+        rigidbody2d = transform.GetComponent<Rigidbody2D>();
+        boxCollider2d = transform.GetComponent<BoxCollider2D>();
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        characterController = GetComponent<CharacterController>();
-        transform.forward = new Vector3(horizontalInput, 0, Mathf.Abs(horizontalInput) - 1);
-        
+        playerHealthBar = PlayerManager.Instance.PlayerHealthBar;
         //Initializing health 
         currentHealth = maxHealth;
-		playerHealthBar.SetMaxHealth(maxHealth);
+        playerHealthBar.SetMaxHealth(maxHealth);
     }
     // Update is called once per frame
     void Update()
     {
-        horizontalInput = 1;
-        //Face Forward
-        // Is Grounded
-        isGrounded = Physics.CheckSphere(transform.position, 1f, groundLayers, QueryTriggerInteraction.Ignore);
-        
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = 0;
-        }
-        else
-        {
-            velocity.y += gravity * Time.deltaTime;
+        if (IsGrounded() && Input.GetKeyDown(KeyCode.Space)) {
+            float jumpVelocity = 15f;
+            rigidbody2d.velocity = Vector2.up * jumpVelocity;
         }
 
-        characterController.Move(new Vector3(horizontalInput * runSpeed, 0, 0) * Time.deltaTime);
+        HandleMovement_FullMidAirControl();
+    }
 
+    private bool IsGrounded() {
+        RaycastHit2D raycastHit2d = Physics2D.BoxCast(boxCollider2d.bounds.center, boxCollider2d.bounds.size, 0f, Vector2.down, 0.1f, platformsLayerMask);
+        //Debug.Log(raycastHit2d.collider);
+        return raycastHit2d.collider != null;
+    }
 
-      
-
-        if (isGrounded && Input.GetButtonDown("Jump"))
-        {
-            velocity.y += Mathf.Sqrt(jumpHeight * -1 * gravity);
-        }
-        
-
-        //Gravity
-        velocity.y += gravity * Time.deltaTime;
-
-        //Vertical Velocity
-        characterController.Move(velocity * Time.deltaTime);
-
-        // //Taking damage
-        // if (Input.GetKeyDown(KeyCode.Space))
-		// {
-		// 	TakeDamage(1);
-		// }
-
+    private void HandleMovement_FullMidAirControl() {
+        float moveSpeed = 13;
+        rigidbody2d.velocity = new Vector2(+moveSpeed, rigidbody2d.velocity.y);
     }
 
     //Defining taking dmg
     public void PlayerTakeDamage(int damage)
 	{
-        Debug.Log($"PlayerTakeDamage: {damage}, currentHealth: {currentHealth}");
+        //Debug.Log($"PlayerTakeDamage: {damage}, currentHealth: {currentHealth}");
 		currentHealth -= damage;
-
+        if(playerHealthBar == null)
+        {
+            playerHealthBar = PlayerManager.Instance.PlayerHealthBar;
+        }
 		playerHealthBar.SetHealth(currentHealth);
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Debug.Log("You're dead");
+            OnPlayerDeath?.Invoke();
+        }
 	}
 }
+
+

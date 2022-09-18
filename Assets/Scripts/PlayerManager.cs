@@ -1,21 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
 {
-    
-    public GameObject player;
-
-    #region Singleton
-    
-    public static PlayerManager instance;
-
-    void Awake ()
+    public static PlayerManager Instance { get; private set; }
+    public PlayerHealthBar PlayerHealthBar { get; private set; }
+    [SerializeField] public Text ScoreText;
+    public int PlayerScore { get; set; }
+    private void Awake()
     {
-        instance = this;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+            return;
+        }
+        Instance = this;
+        PlayerHealthBar = GetComponentInChildren<PlayerHealthBar>();
+        ScoreText = GetComponentInChildren<Text>();
     }
-
-    #endregion   
-
 }
